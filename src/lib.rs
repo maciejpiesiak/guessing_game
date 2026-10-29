@@ -7,7 +7,9 @@
 use rand;
 use std::env;
 use std::error::Error;
+use std::fs::File;
 use std::io;
+use std::io::Read;
 use std::process;
 
 // default number of tries used by default
@@ -71,6 +73,19 @@ impl Game {
             tries,
             guesses,
         }
+    }
+
+    pub fn load_config(&self, path: &str) {
+        let mut config_contents: String = String::new();
+        let mut config_file =
+            File::open(path).expect("Configuration file: Configuration file not found");
+        config_file
+            .read_to_string(&mut config_contents)
+            .expect("Configuration file: Could not read content");
+        let values: serde_json::Value = serde_json::from_str(&config_contents)
+            .expect("Configuration file: Found file with unknown configuration scheme");
+        println!("tries: {}", values["tries"]);
+        println!("secret_number: {}", values["secret_number"]);
     }
 
     pub fn is_correct(&mut self, guess: usize) -> bool {
