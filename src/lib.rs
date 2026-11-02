@@ -84,8 +84,6 @@ impl Game {
             .expect("Configuration file: Could not read content");
         let values: serde_json::Value = serde_json::from_str(&config_contents)
             .expect("Configuration file: Found file with unknown configuration scheme");
-        println!("tries: {}", values["tries"]);
-        println!("secret_number: {}", values["secret_number"]);
     }
 
     pub fn is_correct(&mut self, guess: usize) -> bool {
