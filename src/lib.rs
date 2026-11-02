@@ -5,6 +5,8 @@
 //! between <min>..<max>
 
 use rand;
+use serde::{Deserialize, Serialize};
+use serde_json;
 use std::env;
 use std::error::Error;
 use std::fs::File;
@@ -13,9 +15,14 @@ use std::io::Read;
 use std::process;
 
 // default number of tries used by default
-const DEFAULT_NUMBER_OF_TRIES: usize = 3;
-const DEFAULT_SECRET_MINIMUM: usize = 1;
-const DEFAULT_SECRET_MAXIMUM: usize = 10;
+const CONFIGURATION_PATH: &str = "./config.json";
+
+#[derive(Serialize, Deserialize)]
+struct Config {
+    tries: usize,
+    minimum: usize,
+    maximum: usize,
+}
 
 pub struct Game {
     // the main struct that holds configuration
@@ -28,62 +35,43 @@ pub struct Game {
 impl Game {
     pub fn new() -> Game {
         // number of command-line arguments:
-        // 0 => use all default values
-        // 1 => use default value for minimum and maximum threshold
-        // 2 => use default value for maximum threshold
-        // 3 => use values all command-line arguments
-        // exit (error code 1 or 2) if contract violated
+        // 0 => use default configuration file path
+        // 1 => use custom configuration file path
+        // exit (error code 1) if contract violated
         let provided_args: Vec<String> = env::args().collect();
 
-        if provided_args.len() > 4 {
+        if provided_args.len() > 2 {
             eprintln!("Provided too many arguments..");
             process::exit(1);
         };
 
-        let tries: usize = match provided_args.get(1) {
-            Some(arg1) => arg1
-                .trim()
-                .parse()
-                .expect("Error while parsing number of tries argument"),
-            None => DEFAULT_NUMBER_OF_TRIES,
-        };
-        let secret_minimum: usize = match provided_args.get(2) {
-            Some(arg2) => arg2
-                .trim()
-                .parse()
-                .expect("Error while parsing minimum threshold argument"),
-            None => DEFAULT_SECRET_MINIMUM,
-        };
-        let secret_maximum: usize = match provided_args.get(3) {
-            Some(arg2) => arg2
-                .trim()
-                .parse()
-                .expect("Error while parsing maximum threshold argument"),
-            None => DEFAULT_SECRET_MAXIMUM,
+        let path: &str = match provided_args.get(1) {
+            Some(arg) => arg.trim(),
+            None => CONFIGURATION_PATH,
         };
 
-        if secret_minimum > secret_maximum {
-            eprintln!("Minimum threshold should be lower than maximum");
-            process::exit(2);
-        };
-        let secret_number: usize = rand::random_range(secret_minimum..=secret_maximum);
-        let guesses: Vec<usize> = Vec::new();
-        Game {
-            secret_number,
-            tries,
-            guesses,
-        }
-    }
-
-    pub fn load_config(&self, path: &str) {
         let mut config_contents: String = String::new();
         let mut config_file =
             File::open(path).expect("Configuration file: Configuration file not found");
         config_file
             .read_to_string(&mut config_contents)
             .expect("Configuration file: Could not read content");
-        let values: serde_json::Value = serde_json::from_str(&config_contents)
+        let config: Config = serde_json::from_str(&config_contents)
             .expect("Configuration file: Found file with unknown configuration scheme");
+
+        if config.minimum > config.maximum {
+            eprintln!("Minimum threshold should be lower than maximum");
+            process::exit(2);
+        };
+
+        let secret_number: usize = rand::random_range(config.minimum..=config.maximum);
+        let tries: usize = config.tries;
+        let guesses: Vec<usize> = Vec::new();
+        Game {
+            secret_number,
+            tries,
+            guesses,
+        }
     }
 
     pub fn is_correct(&mut self, guess: usize) -> bool {
