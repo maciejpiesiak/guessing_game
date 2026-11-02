@@ -4,9 +4,7 @@
 //! <number tries> tries and a goal is to guess a number that is somewhere
 //! between <min>..<max>
 
-use rand;
 use serde::{Deserialize, Serialize};
-use serde_json;
 use std::env;
 use std::error::Error;
 use std::fs::File;
