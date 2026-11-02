@@ -14,7 +14,7 @@ fn main() {
                 }
             };
         };
-        if game.is_correct(guess) == true {
+        if game.is_correct(guess) {
             break;
         }
     }
