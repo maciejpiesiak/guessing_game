@@ -1,4 +1,4 @@
-use guessing_game::{Game, get_input};
+use guessing_game::{get_input, Game};
 
 fn main() {
     let mut game = Game::new();
@@ -14,7 +14,7 @@ fn main() {
                 }
             };
         };
-        if game.is_correct(guess) == true {
+        if game.is_correct(guess) {
             break;
         }
     }

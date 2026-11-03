@@ -79,3 +79,6 @@ flycheck_*.el
 
 # undo-tree
 *.~undo-tree~
+
+# JSON Configuration file
+config.json
